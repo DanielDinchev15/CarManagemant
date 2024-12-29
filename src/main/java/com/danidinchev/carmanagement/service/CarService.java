@@ -1,8 +1,11 @@
 package com.danidinchev.carmanagement.service;
 
+import com.danidinchev.carmanagement.dto.CreateCarDTO;
 import com.danidinchev.carmanagement.dto.ResponseCarDTO;
 import com.danidinchev.carmanagement.dto.ResponseGarageDTO;
+import com.danidinchev.carmanagement.dto.UpdateCarDTO;
 import com.danidinchev.carmanagement.entity.Car;
+import com.danidinchev.carmanagement.entity.Garage;
 import com.danidinchev.carmanagement.repository.CarRepository;
 import com.danidinchev.carmanagement.repository.GarageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +19,14 @@ import java.util.stream.Collectors;
 public class CarService {
 
     private final CarRepository carRepository;
+    private final GarageRepository garageRepository;
 
     @Autowired
     public CarService(CarRepository carRepository, GarageRepository garageRepository) {
         this.carRepository = carRepository;
+        this.garageRepository = garageRepository;
     }
+
     public List<ResponseCarDTO> getAllCars() {
         List<Car> cars = carRepository.findAll();
         return cars.stream()
@@ -56,6 +62,47 @@ public class CarService {
         );
 
         return List.of(convertToCarDTO(theCar));
+    }
+
+    public Car saveCar(CreateCarDTO createCarDTO) {
+        Car car = new Car();
+        car.setMake(createCarDTO.getMake());
+        car.setModel(createCarDTO.getModel());
+        car.setProductionYear(createCarDTO.getProductionYear());
+        car.setLicensePlate(createCarDTO.getLicensePlate());
+
+        Optional<Garage> garageOptional = garageRepository.findById(createCarDTO.getGarageIds().get(0));
+        garageOptional.ifPresent(car::setGarage);
+
+        return carRepository.save(car);
+    }
+
+    public void deleteById(Long id) {
+        carRepository.deleteById(id);
+    }
+
+    public Car updateCar(Long id, UpdateCarDTO updateCarDTO) {
+        Optional<Car> optionalCar = carRepository.findById(id);
+
+        if (optionalCar.isPresent()) {
+            Car car = optionalCar.get();
+
+            if (updateCarDTO.getMake() != null) car.setMake(updateCarDTO.getMake());
+            if (updateCarDTO.getModel() != null) car.setModel(updateCarDTO.getModel());
+            if (updateCarDTO.getProductionYear() != 0) car.setProductionYear(updateCarDTO.getProductionYear());
+            if (updateCarDTO.getLicensePlate() != null) car.setLicensePlate(updateCarDTO.getLicensePlate());
+
+            if (updateCarDTO.getGarageIds() != null && !updateCarDTO.getGarageIds().isEmpty()) {
+                Long garageId = updateCarDTO.getGarageIds().get(0);
+                Optional<Garage> garageOptional = garageRepository.findById(garageId);
+                garageOptional.ifPresent(car::setGarage);
+            }
+
+            return carRepository.save(car);
+        } else {
+            throw new RuntimeException("Car not found");
+        }
+
     }
 
 }

@@ -2,6 +2,9 @@ package com.danidinchev.carmanagement.controller;
 
 import com.danidinchev.carmanagement.dto.CreateGarageDTO;
 import com.danidinchev.carmanagement.dto.ResponseGarageDTO;
+import com.danidinchev.carmanagement.dto.UpdateCarDTO;
+import com.danidinchev.carmanagement.dto.UpdateGarageDTO;
+import com.danidinchev.carmanagement.entity.Car;
 import com.danidinchev.carmanagement.entity.Garage;
 import com.danidinchev.carmanagement.service.GarageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,4 +39,12 @@ public class GarageController {
         Garage createdGarage = garageService.createGarage(createGarageDTO);
         return ResponseEntity.ok(createdGarage);
     }
+
+    @PutMapping ("/{id}")
+    public Garage updateGarage(@PathVariable Long id, @RequestBody UpdateGarageDTO updateGarageDTO){
+        return garageService.updateGarage(id, updateGarageDTO);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteGarage(@PathVariable Long id){garageService.deleteById(id);}
 }
