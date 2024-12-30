@@ -1,15 +1,21 @@
 package com.danidinchev.carmanagement.service;
 
 import com.danidinchev.carmanagement.dto.CreateGarageDTO;
+import com.danidinchev.carmanagement.dto.GarageDailyAvailabilityReportDTO;
 import com.danidinchev.carmanagement.dto.ResponseGarageDTO;
 import com.danidinchev.carmanagement.dto.UpdateGarageDTO;
 import com.danidinchev.carmanagement.entity.Garage;
 import com.danidinchev.carmanagement.repository.GarageRepository;
+import com.danidinchev.carmanagement.repository.MaintenanceRepository;
 import com.danidinchev.carmanagement.specifications.GarageSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -18,10 +24,12 @@ import java.util.stream.Collectors;
 public class GarageService {
 
     private final GarageRepository garageRepository;
+    private final MaintenanceRepository maintenanceRepository;
 
     @Autowired
-    public GarageService(GarageRepository garageRepository) {
+    public GarageService(GarageRepository garageRepository, MaintenanceRepository maintenanceRepository) {
         this.garageRepository = garageRepository;
+        this.maintenanceRepository = maintenanceRepository;
     }
 
     public List<ResponseGarageDTO> getAllGarages(String city) {
@@ -78,6 +86,27 @@ public class GarageService {
         } else {
             throw new EntityNotFoundException("Not found Garage with id:" + id);
         }
+    }
+
+    public List<GarageDailyAvailabilityReportDTO> getGarageDailyAvailabilityReport(Long garageId, String startDate, String endDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate start = LocalDate.parse(startDate, formatter);
+        LocalDate end = LocalDate.parse(endDate, formatter);
+        List<GarageDailyAvailabilityReportDTO> report = new ArrayList<>();
+
+        for (LocalDate currentDate = start; !currentDate.isAfter(end); currentDate = currentDate.plusDays(1)) {
+            int requests = garageRepository.countByGarageIdAndScheduledDate(garageId, currentDate.toString());
+            Garage garage = garageRepository.findById(garageId)
+                    .orElseThrow(() -> new EntityNotFoundException("Garage not found with id: " + garageId));
+            int availableCapacity = garage.getCapacity() - requests;
+            GarageDailyAvailabilityReportDTO dailyReport = new GarageDailyAvailabilityReportDTO(
+                    currentDate.toString(),
+                    requests,
+                    availableCapacity
+            );
+            report.add(dailyReport);
+        }
+        return report;
     }
 
 }

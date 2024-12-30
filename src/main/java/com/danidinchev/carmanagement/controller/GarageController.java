@@ -1,6 +1,7 @@
 package com.danidinchev.carmanagement.controller;
 
 import com.danidinchev.carmanagement.dto.CreateGarageDTO;
+import com.danidinchev.carmanagement.dto.GarageDailyAvailabilityReportDTO;
 import com.danidinchev.carmanagement.dto.ResponseGarageDTO;
 import com.danidinchev.carmanagement.dto.UpdateGarageDTO;
 import com.danidinchev.carmanagement.entity.Garage;
@@ -45,4 +46,14 @@ public class GarageController {
 
     @DeleteMapping("/{id}")
     public void deleteGarage(@PathVariable Long id){garageService.deleteById(id);}
+
+    @GetMapping("/dailyAvailabilityReport")
+    public List<GarageDailyAvailabilityReportDTO> getGarageDailyAvailabilityReport(
+            @RequestParam Long garageId,
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        return garageService.getGarageDailyAvailabilityReport(garageId, startDate, endDate);
+    }
+
 }
+

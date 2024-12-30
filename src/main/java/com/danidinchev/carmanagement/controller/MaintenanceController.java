@@ -1,11 +1,13 @@
 package com.danidinchev.carmanagement.controller;
 
 import com.danidinchev.carmanagement.dto.CreateMaintenanceDTO;
+import com.danidinchev.carmanagement.dto.MonthlyRequestsReportDTO;
 import com.danidinchev.carmanagement.dto.ResponseMaintenanceDTO;
 import com.danidinchev.carmanagement.dto.UpdateMaintenanceDTO;
 import com.danidinchev.carmanagement.entity.Maintenance;
 import com.danidinchev.carmanagement.service.MaintenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,5 +52,14 @@ import java.util.List;
                 @RequestParam(required = false) Long carId
         ) {
             return maintenanceService.findMaintenances(garageId, carId);
+        }
+
+        @GetMapping("/monthlyRequestsReport")
+        public ResponseEntity<List<MonthlyRequestsReportDTO>> monthlyRequestsReport(@RequestParam Long garageId,
+                                                                                    @RequestParam String startMonth,
+                                                                                    @RequestParam String endMonth) {
+            List<MonthlyRequestsReportDTO> monthlyRequestsReportDTO =
+                    maintenanceService.getMonthlyRequestReport(garageId, startMonth, endMonth);
+            return ResponseEntity.ok(monthlyRequestsReportDTO);
         }
 }

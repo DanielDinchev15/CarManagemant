@@ -1,6 +1,7 @@
 package com.danidinchev.carmanagement.service;
 
 import com.danidinchev.carmanagement.dto.CreateMaintenanceDTO;
+import com.danidinchev.carmanagement.dto.MonthlyRequestsReportDTO;
 import com.danidinchev.carmanagement.dto.ResponseMaintenanceDTO;
 import com.danidinchev.carmanagement.dto.UpdateMaintenanceDTO;
 import com.danidinchev.carmanagement.entity.Car;
@@ -15,8 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -111,5 +113,35 @@ public class MaintenanceService {
                 new RuntimeException("There is not maintenance with id: " + id)
         );
         return List.of(convertToDTO(theMaintenance));
+    }
+
+    public List<MonthlyRequestsReportDTO> getMonthlyRequestReport(Long garageId, String startMonth, String endMonth) {
+        List<MonthlyRequestsReportDTO> monthlyRequestsReportDTO = new ArrayList<>();
+        List<Maintenance> maintenances = maintenanceRepository.findByGarage_Id(garageId);
+
+        YearMonth currentYearMonth = YearMonth.parse(startMonth);
+        YearMonth yearMonthEnd = YearMonth.parse(endMonth);
+
+        Map<YearMonth, Integer> yearMonthRequestsMap = new HashMap<>();
+
+        do {
+            yearMonthRequestsMap.put(currentYearMonth, 0);
+            currentYearMonth = currentYearMonth.plusMonths(1);
+        } while (currentYearMonth.isBefore(yearMonthEnd.plusMonths(1)));
+
+        for (Maintenance maintenance : maintenances) {
+            YearMonth maintenanceMonth = YearMonth.parse(maintenance.getScheduledDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+            if (yearMonthRequestsMap.containsKey(maintenanceMonth)) {
+                yearMonthRequestsMap.put(maintenanceMonth, yearMonthRequestsMap.get(maintenanceMonth) + 1);
+            }
+        }
+
+        for (YearMonth yearMonth : yearMonthRequestsMap.keySet()) {
+            MonthlyRequestsReportDTO requestsReportDTO = new MonthlyRequestsReportDTO();
+            requestsReportDTO.setYearMonth(yearMonth);
+            requestsReportDTO.setRequests(yearMonthRequestsMap.get(yearMonth));
+            monthlyRequestsReportDTO.add(requestsReportDTO);
+        }
+        return monthlyRequestsReportDTO;
     }
 }
