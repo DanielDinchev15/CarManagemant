@@ -9,8 +9,10 @@ import com.danidinchev.carmanagement.entity.Maintenance;
 import com.danidinchev.carmanagement.repository.CarRepository;
 import com.danidinchev.carmanagement.repository.GarageRepository;
 import com.danidinchev.carmanagement.repository.MaintenanceRepository;
+import com.danidinchev.carmanagement.specifications.MaintenanceSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,9 +33,12 @@ public class MaintenanceService {
         this.carRepository = carRepository;
     }
 
-    public List<ResponseMaintenanceDTO> findAllMaintenances() {
-        List<Maintenance> maintenances = maintenanceRepository.findAll();
-        return maintenances.stream()
+    public List<ResponseMaintenanceDTO> findMaintenances(Long garageId, Long carId) {
+        Specification<Maintenance> spec = Specification
+                .where(MaintenanceSpecification.hasGarageId(garageId))
+                .and(MaintenanceSpecification.hasCarId(carId));
+
+        return maintenanceRepository.findAll(spec).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -107,6 +112,4 @@ public class MaintenanceService {
         );
         return List.of(convertToDTO(theMaintenance));
     }
-
-
 }

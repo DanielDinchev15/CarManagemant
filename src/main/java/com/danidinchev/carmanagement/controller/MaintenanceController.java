@@ -4,7 +4,6 @@ import com.danidinchev.carmanagement.dto.CreateMaintenanceDTO;
 import com.danidinchev.carmanagement.dto.ResponseMaintenanceDTO;
 import com.danidinchev.carmanagement.dto.UpdateMaintenanceDTO;
 import com.danidinchev.carmanagement.entity.Maintenance;
-import com.danidinchev.carmanagement.service.GarageService;
 import com.danidinchev.carmanagement.service.MaintenanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -46,7 +45,10 @@ import java.util.List;
         }
 
         @GetMapping
-        public List<ResponseMaintenanceDTO> getAllMaintenances(){
-            return maintenanceService.findAllMaintenances();
+        public List<ResponseMaintenanceDTO> getAllMaintenances(
+                @RequestParam(required = false) Long garageId,
+                @RequestParam(required = false) Long carId
+        ) {
+            return maintenanceService.findMaintenances(garageId, carId);
         }
 }

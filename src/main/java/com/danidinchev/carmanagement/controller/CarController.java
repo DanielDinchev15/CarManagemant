@@ -27,8 +27,13 @@ public class CarController {
     }
 
     @GetMapping
-    public List<ResponseCarDTO> getCars() {
-        return carService.getAllCars();
+    public List<ResponseCarDTO> getCars(
+            @RequestParam(required = false, name = "carMake") String carMake,
+            @RequestParam(required = false) Long garageId,
+            @RequestParam(required = false) Integer fromYear,
+            @RequestParam(required = false) Integer toYear
+    ) {
+        return carService.getAll(carMake, garageId, fromYear, toYear);
     }
 
     @PostMapping

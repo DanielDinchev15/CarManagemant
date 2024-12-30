@@ -1,5 +1,6 @@
 package com.danidinchev.carmanagement.service;
 
+import com.danidinchev.carmanagement.specifications.CarSpecification;
 import com.danidinchev.carmanagement.dto.CreateCarDTO;
 import com.danidinchev.carmanagement.dto.ResponseCarDTO;
 import com.danidinchev.carmanagement.dto.ResponseGarageDTO;
@@ -9,6 +10,7 @@ import com.danidinchev.carmanagement.entity.Garage;
 import com.danidinchev.carmanagement.repository.CarRepository;
 import com.danidinchev.carmanagement.repository.GarageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
@@ -27,10 +29,30 @@ public class CarService {
         this.garageRepository = garageRepository;
     }
 
-    public List<ResponseCarDTO> getAllCars() {
-        List<Car> cars = carRepository.findAll();
+    public List<ResponseCarDTO> getAll(String make, Long garageId, Integer fromYear, Integer toYear) {
+
+        Specification<Car> spec = Specification
+                .where(CarSpecification.hasCarMake(make))
+                .and(CarSpecification.hasGarageId(garageId))
+                .and(CarSpecification.hasProductionYearBetween(fromYear, toYear));
+
+        List<Car> cars = carRepository.findAll(spec);
+
         return cars.stream()
-                .map(this::convertToCarDTO)
+                .map(car -> new ResponseCarDTO(
+                        car.getId(),
+                        car.getMake(),
+                        car.getModel(),
+                        car.getProductionYear(),
+                        car.getLicensePlate(),
+                        List.of(new ResponseGarageDTO(
+                                car.getGarage().getId(),
+                                car.getGarage().getName(),
+                                car.getGarage().getLocation(),
+                                car.getGarage().getCity(),
+                                car.getGarage().getCapacity()
+                        ))
+                ))
                 .collect(Collectors.toList());
     }
 
@@ -103,6 +125,6 @@ public class CarService {
             throw new RuntimeException("Car not found");
         }
 
-    }
 
+    }
 }

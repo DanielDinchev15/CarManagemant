@@ -5,8 +5,10 @@ import com.danidinchev.carmanagement.dto.ResponseGarageDTO;
 import com.danidinchev.carmanagement.dto.UpdateGarageDTO;
 import com.danidinchev.carmanagement.entity.Garage;
 import com.danidinchev.carmanagement.repository.GarageRepository;
+import com.danidinchev.carmanagement.specifications.GarageSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -22,9 +24,11 @@ public class GarageService {
         this.garageRepository = garageRepository;
     }
 
+    public List<ResponseGarageDTO> getAllGarages(String city) {
 
-    public List<ResponseGarageDTO> getAllGarages() {
-        return garageRepository.findAll().stream()
+        Specification<Garage> spec = Specification.where(GarageSpecification.hasCity(city));
+
+        return garageRepository.findAll(spec).stream()
                 .map(garage -> new ResponseGarageDTO(
                         garage.getId(),
                         garage.getName(),
